@@ -76,7 +76,48 @@ PTM_drugs <- CTRPv2_0_INFORMER_SET %>%
 PTM_drug_AUC <- AUC_data[,PTM_drugs$cpd_name]
 rownames(PTM_drug_AUC) <- AUC_data$Depmap_ID
 ```
+
 ```{r}
 write.csv(PTM_drug_AUC, "~/University of Michigan Dropbox/Rupa Bhowmick/Rupa Bhowmick’s files/Home/Rupa_data/PTM_metabolite_Drug/Data/Model_data/PTM_drugs_AUC.csv")
+```
+
+```{r}
+GCP_all <- read_excel("~/University of Michigan Dropbox/Rupa Bhowmick/Rupa Bhowmick’s files/Home/Rupa_data/PTM_metabolite_Drug/Data/Model_data/model_inputs.xlsx", sheet = 1)
+metabolome_all <- read_excel("~/University of Michigan Dropbox/Rupa Bhowmick/Rupa Bhowmick’s files/Home/Rupa_data/PTM_metabolite_Drug/Data/Model_data/model_inputs.xlsx", sheet = 2)
+AUC_PTM_all <- read_excel("~/University of Michigan Dropbox/Rupa Bhowmick/Rupa Bhowmick’s files/Home/Rupa_data/PTM_metabolite_Drug/Data/Model_data/model_inputs.xlsx", sheet = 4)
+```
+
+
+```{r}
+# Find the union of all unique entries across the three columns
+common_entries <- Reduce(intersect, list(GCP_all$BroadID, metabolome_all$DepMap_ID, AUC_PTM_all$DepMap_ID))
+```
+
+```{r}
+#load library to create and write xlsx
+library(openxlsx)
+
+#filter rows from the previous files for all common entries
+GCP <- GCP_all[GCP_all$BroadID %in% common_entries,]
+metabolome <- metabolome_all[metabolome_all$DepMap_ID %in% common_entries,]
+AUC_PTM <- AUC_PTM_all[AUC_PTM_all$DepMap_ID %in% common_entries,]
+
+# Create a new workbook
+wb <- createWorkbook()
+
+# Add first sheet and write the first data frame
+addWorksheet(wb, "GCP_processed")
+writeData(wb, "GCP_processed", GCP)
+
+# Add second sheet and write the second data frame
+addWorksheet(wb, "metabolome_processed")
+writeData(wb, "metabolome_processed", metabolome)
+
+# Add third sheet for AUC
+addWorksheet(wb, "AUC_PTM_processed")
+writeData(wb, "AUC_PTM_processed", AUC_PTM)
+
+# Save the workbook to an Excel file
+saveWorkbook(wb, "~/University of Michigan Dropbox/Rupa Bhowmick/Rupa Bhowmick’s files/Home/Rupa_data/PTM_metabolite_Drug/Data/Model_data/processed_model_inputs.xlsx", overwrite = TRUE)
 ```
 
